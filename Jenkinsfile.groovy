@@ -9,12 +9,14 @@ pipeline {
       stage('fetch_latest_code') {
         steps {
           git credentialsId: 'esteban0477', url: 'https://github.com/esteban0477/cfn-aws'
+          sh 'chmod +x detect_tf_changes.sh'
         }
       }
 
       stage('Deploy cfn') {
         steps {
           script {
+
             if (env.BRANCH_NAME == 'main'){
               
               def MODULES_TO_BUILD = sh script:"./detect_tf_changes.sh", returnStdout: true
@@ -45,6 +47,7 @@ pipeline {
                 }
               }
             }
+
           }
         }
       }
