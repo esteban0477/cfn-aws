@@ -5,6 +5,8 @@ echo $EXISTS
 if [ $EXISTS -gt 0 ]
 then
     aws cloudformation update-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
+    aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
 else
     aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
+    aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
 fi
