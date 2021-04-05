@@ -1,5 +1,5 @@
 ---
-# Default Security Group for my labs
+# Default Security Group for my lab
 # It has basic ports: 22, 80, 443
 
 Parameters:
