@@ -22,7 +22,8 @@ pipeline {
                 dir("${it}"){
                   sh 'pwd'
                   sh 'aws cloudformation validate-template --template-body file://cfn_stack_spec.yaml'
-                  sh 'aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name '+"${it}"
+                  def STACK_NAME = sh script:"./get_stack_name.sh ${it}", returnStdout: true
+                  sh 'aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name '+STACK_NAME
                 }
               }
             }
