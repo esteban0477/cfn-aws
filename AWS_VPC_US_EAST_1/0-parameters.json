@@ -1,0 +1,21 @@
+[
+    {
+        "ParameterKey": "SecurityGroupDescription",
+        "ParameterValue": "This is just a test description"
+    },{
+        "ParameterKey": "SecurityGroupPort",
+        "ParameterValue": "22"
+    },{
+        "ParameterKey": "Enviroment",
+        "ParameterValue": "Dev"
+    },{
+        "ParameterKey": "KeyName",
+        "ParameterValue": "bwapp"
+    },{
+        "ParameterKey": "SecurityGroupIngressCIDR",
+        "ParameterValue": "0.0.0.0/0"
+    },{
+        "ParameterKey": "myVPC",
+        "ParameterValue": "vpc-b61311de"
+    }
+]

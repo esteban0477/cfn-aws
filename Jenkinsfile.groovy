@@ -22,7 +22,6 @@ pipeline {
                 dir("${it}"){
                   sh 'pwd'
                   sh 'aws cloudformation validate-template --template-body file://cfn_stack_spec.yaml'
-                  sh 'cat parameters.yaml | yq eval -PMj > parameters.json'
                   sh 'aws cloudformation create-stack --stack-name ${it} --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json'
                 }
               }
