@@ -1,0 +1,277 @@
+---
+# To validate YAML syntax:
+# aws cloudformation validate-template --template-body file://parameters_test.yaml
+#
+# In order to get the Change Set: (All parameters should have default values or use the override)
+# aws cloudformation deploy --template-file parameters_test.yaml --stack-name test --no-execute-changeset
+
+# we create the cloudformation template
+# aws cloudformation create-stack --stack-name test --template-body file://parameters_test.yaml --parameters file://0-parameters.json --region us-east-2
+# aws cloudformation create-change-set --stack-name ${MODULES_TO_BUILD} --template-body file://${MODULES_TO_BUILD}/cfn_stack_spec.yaml --parameters file://${MODULES_TO_BUILD}/parameters.json --region us-east-2
+# aws cloudformation update-stack --stack-name test --template-body file://parameters_test.yaml --parameters file://0-parameters.json --region us-east-2
+# aws cloudformation list-stacks | jq .StackSummaries[].StackName
+
+
+# some options:
+# [--disable-rollback | --no-disable-rollback]
+# [--rollback-configuration <value>]
+# [--timeout-in-minutes <value>]
+# [--notification-arns <value>]
+# [--capabilities <value>]
+# [--resource-types <value>]
+# [--role-arn <value>]
+# [--on-failure <value>]
+# [--stack-policy-body <value>]
+# [--stack-policy-url <value>]
+# [--tags <value>]
+# [--client-request-token <value>]
+# [--enable-termination-protection | --no-enable-termination-protection]
+# [--cli-input-json <value>]
+# [--generate-cli-skeleton <value>]
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Security common configurations"
+        Parameters: 
+          - SecurityGroupDescription
+          - SecurityGroupPort
+          - SecurityGroupIngressCIDR
+      - Label:
+          default: "Miscellaniuos"
+        Parameters:
+          - Enviroment
+          - KeyName
+          - myVPC
+    
+    ParameterLabels:
+      SecurityGroupDescription:
+        default: "Please Enter the Security Group Description"
+      SecurityGroupPort:
+        default: "Please Enter the Security Group Port"
+      SecurityGroupIngressCIDR:
+        default: "Please Enter the Security Group Ingress CIDR"
+
+Parameters:
+
+  SecurityGroupDescription:
+    Description: Security Group Description
+    Type: String
+    Default: something
+
+  SecurityGroupPort:
+    Description: a number
+    Type: Number
+    MinValue: 1
+    MaxValue: 65535
+    Default: 22
+
+  Enviroment:
+    Description: Environment to create resources
+    Type: String
+    Default: Prod
+    AllowedValues: 
+    - Dev
+    - Test
+    - Perf
+    - Stg
+    - Prod
+    ConstraintDescription: Must be a valid environment type
+  
+  KeyName:
+    Description: An SSH Key to access the EC2 instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: bwapp
+    ConstraintDescription: must be the name of a valid ssh key
+  
+  SecurityGroupIngressCIDR:
+    Description: The IP range that can be used to communicate with the EC2
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
+    ConstraintDescription: An IP Range must be specified
+
+  myVPC:
+    Description: A valid VPC ID
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-b61311de
+
+Mappings:
+
+  InstanceType:
+    Dev:
+      InstanceType: t2.nano
+    Test:
+      InstanceType: t2.micro
+    Perf:
+      InstanceType: t2.micro
+    Stg:
+      InstanceType: t2.micro
+    Prod:
+      InstanceType: t2.micro
+
+  AMIUbuntu:
+    us-east-1: 
+      amd64: ami-03eaf3b9c3367e75c
+      arm64: ami-06c7b46274dd03c77
+    us-east-2: 
+      amd64: ami-09135e71dc2619458
+      arm64: ami-0c8a4fc25e0148cdd
+    us-west-1: 
+      amd64: ami-0513e8ea9024b5b92
+      arm64: ami-03659b2c5b0eb3df0
+    us-west-2: 
+      amd64: ami-007e276c37b5ff2d7
+      arm64: ami-0a9325cf973896d55
+
+Conditions:
+  CreateResources: !Equals [ !Ref Enviroment, Prod ]
+
+Resources:
+  
+  BaseSecGroupStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://common-stacks-cfn-juan.s3.us-east-2.amazonaws.com/securitygroup.yaml
+      Parameters:
+        CreateBaseSecurityGroup: True
+      TimeoutInMinutes: 5
+
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Installing custom applications for my ubuntu ec2
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            apt:
+              apache2: []
+              php: []
+          groups:
+            apache: {}
+            test-group: {}
+            another-group-for-test: {}
+          users:
+            "esteban":
+              groups:
+                - test-group
+                - another-group-for-test
+              homeDir: "/home/esteban"
+          sources:
+            /home/esteban/java-app: "https://github.com/esteban0477/simple-java-maven-app/archive/refs/heads/master.zip"
+          files:
+            /home/esteban/hello.txt:
+              content: !Sub |
+                This is the value of the hello.txt file
+                I Can write multiple lines from the cfn template
+                Because I'm using the Sub built-in function, I can replace pseudo-parameters.
+                Such as:
+                Region: ${AWS::Region}
+                Account ID: ${AWS::AccountId}
+                Stack Name: ${AWS::StackName}
+            /etc/cfn/cfn-hup.conf:
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.WebServerHost.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource myEC2Instance --region ${AWS::Region}
+              mode: "000400"
+              owner: "root"
+              group: "root"
+          commands:
+            myCommand:
+              command: "echo \"$MAGIC\" > test.txt"
+              env: 
+                MAGIC: "This is an env variable"
+              cwd: "~"
+              test: "test ! -e ~/test.txt"
+              ignoreErrors: false
+            # Best practice is to write bash script in the files section and
+            # execute the script through commands section
+          services:
+            sysvinit:
+              enabled: true
+              ensureRunning: true
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT5M
+    Properties:
+      KeyName: !Ref KeyName
+      DisableApiTermination: false
+      ImageId: !FindInMap [ AMIUbuntu, !Ref "AWS::Region" , amd64 ]
+      InstanceType: !FindInMap [ InstanceType, !Ref Enviroment, InstanceType ]
+      Monitoring: false
+      SecurityGroupIds:
+        - !Ref MySecGroup
+        - !GetAtt BaseSecGroupStack.Outputs.BaseSecurityGroupOutput
+      UserData: 
+        "Fn::Base64":
+          !Sub |
+            #!/bin/bash -xe
+            apt-get update -y
+            apt-get install -y python-setuptools
+            mkdir -p /opt/aws/bin
+            wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+            python -m easy_install --script-dir /opt/aws/bin aws-cfn-bootstrap-latest.tar.gz
+            # Start cfn-init
+            /opt/aws/bin/cfn-init -s ${AWS::StackId} -r myEC2Instance --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
+            # Start up the cfn-hup daemon to listen for changes to the EC2 instance metadata
+            /opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+            # All done so signal success
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource myEC2Instance --region ${AWS::Region}
+      Tags:
+        - Key: key
+          Value: value
+
+  MySecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: MyCloudformationSecGroup
+      GroupDescription: !Ref SecurityGroupDescription
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref SecurityGroupPort 
+          ToPort: !Ref SecurityGroupPort 
+          CidrIp: !Ref SecurityGroupIngressCIDR
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: anykey
+          Value: anyvalue
+  
+  ec2Volume:
+    Type: AWS::EC2::Volume
+    Condition: CreateResources
+    Properties:
+      AvailabilityZone: !GetAtt myEC2Instance.AvailabilityZone
+      Size: 20
+      VolumeType: gp2
+
+  VolumeAttacher:
+    Type: AWS::EC2::VolumeAttachment
+    Condition: CreateResources
+    Properties:
+      Device: /dev/sdh
+      InstanceId: !Ref myEC2Instance
+      VolumeId: !Ref ec2Volume
+
+    
+
+  
+
+
