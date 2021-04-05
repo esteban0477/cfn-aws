@@ -10,6 +10,7 @@ pipeline {
         steps {
           git credentialsId: 'esteban0477', url: 'https://github.com/esteban0477/cfn-aws'
           sh 'chmod +x detect_tf_changes.sh'
+          sh 'chmod +x get_stack_name.sh'
         }
       }
 
