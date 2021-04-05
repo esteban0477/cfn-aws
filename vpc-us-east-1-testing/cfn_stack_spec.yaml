@@ -1,5 +1,5 @@
 ---
-# To validate YAML syntax:
+# To validate YAML syntax
 # aws cloudformation validate-template --template-body file://parameters_test.yaml
 #
 # In order to get the Change Set: (All parameters should have default values or use the override)
