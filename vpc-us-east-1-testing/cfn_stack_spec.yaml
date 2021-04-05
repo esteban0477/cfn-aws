@@ -1,7 +1,7 @@
 ---
 # To validate YAML syntax
 # aws cloudformation validate-template --template-body file://parameters_test.yaml
-#
+
 # In order to get the Change Set: (All parameters should have default values or use the override)
 # aws cloudformation deploy --template-file parameters_test.yaml --stack-name test --no-execute-changeset
 
