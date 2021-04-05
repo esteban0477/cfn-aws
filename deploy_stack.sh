@@ -4,7 +4,7 @@ EXISTS=$(aws cloudformation list-stacks --stack-status-filter REVIEW_IN_PROGRESS
 echo $EXISTS
 if [ $EXISTS -gt 0 ]
 then
-    aws cloudformation update-stack --template-body file://${STACK_NAME}/cfn_stack_spec.yaml --parameters file://${STACK_NAME}/parameters.json --stack-name ${STACK_NAME}
+    aws cloudformation update-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
 else
-    aws cloudformation create-stack --template-body file://${STACK_NAME}/cfn_stack_spec.yaml --parameters file://${STACK_NAME}/parameters.json --stack-name ${STACK_NAME}
+    aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
 fi
