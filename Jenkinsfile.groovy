@@ -24,15 +24,7 @@ pipeline {
                 dir("${it}"){
                   sh 'pwd'
                   sh 'aws cloudformation validate-template --template-body file://cfn_stack_spec.yaml'
-                  def STACK_NAME = sh script:"../get_stack_name.sh ${it}", returnStdout: true
-                  // def STACK_NAME_EXISTS = sh script:"../validate_existence.sh $STACK_NAME", returnStdout: true
-                  /* if ("$STACK_NAME_EXISTS" == 0) {
-                    sh 'echo "Stack does not exist"'
-                    // sh 'aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name '+STACK_NAME
-                  } else {
-                    sh 'echo "Stack exists"'
-                    // sh 'aws cloudformation update-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name '+STACK_NAME
-                  }*/
+                  sh "../deploy_stack.sh ${it}"
                 }
               }
             }
