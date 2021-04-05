@@ -14,7 +14,7 @@ pipeline {
 
       stage('Deploy cfn') {
         steps {
-          step {
+          script {
             if (env.BRANCH_NAME == 'main'){
               
               def MODULES_TO_BUILD = sh script:"./detect_tf_changes.sh", returnStdout: true
