@@ -5,7 +5,7 @@
 # In order to get the Change Set: (All parameters should have default values or use the override)
 # aws cloudformation deploy --template-file parameters_test.yaml --stack-name test --no-execute-changeset
 
-# we create the cloudformation templates
+# we create the cloudformation template
 # aws cloudformation create-stack --stack-name test --template-body file://parameters_test.yaml --parameters file://0-parameters.json --region us-east-2
 # aws cloudformation create-change-set --stack-name ${MODULES_TO_BUILD} --template-body file://${MODULES_TO_BUILD}/cfn_stack_spec.yaml --parameters file://${MODULES_TO_BUILD}/parameters.json --region us-east-2
 # aws cloudformation update-stack --stack-name test --template-body file://parameters_test.yaml --parameters file://0-parameters.json --region us-east-2

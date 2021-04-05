@@ -1,6 +1,6 @@
 [
     {
         "ParameterKey": "CreateBaseSecurityGroup",
-        "ParameterValue": "True"
+        "ParameterValue": "true"
     }
 ]
