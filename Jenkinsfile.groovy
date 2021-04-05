@@ -21,9 +21,9 @@ pipeline {
               withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'awsjuan', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                 dir("${it}"){
                   sh 'pwd'
-                  sh 'aws cloudformation validate-template --template-body file://../cfn_stack_spec.yaml'
-                  sh 'cat ../parameters.yaml | yq eval -PMj > ../parameters.json'
-                  sh 'aws cloudformation create-stack --stack-name '''+MODULES_TO_BUILD+''' --template-body file://'''+MODULES_TO_BUILD+'''cfn_stack_spec.yaml --parameters file://'''+MODULES_TO_BUILD+'''parameters.json'''
+                  sh 'aws cloudformation validate-template --template-body file://cfn_stack_spec.yaml'
+                  sh 'cat parameters.yaml | yq eval -PMj > parameters.json'
+                  sh 'aws cloudformation create-stack --stack-name ${it} --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json'
                 }
               }
             }
