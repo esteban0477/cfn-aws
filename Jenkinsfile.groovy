@@ -8,7 +8,7 @@ pipeline {
     stages {
       stage('fetch_latest_code') {
         steps {
-          git credentialsId: 'esteban0477', url: 'https://github.com/esteban0477/cfn_aws'
+          git credentialsId: 'esteban0477', url: 'https://github.com/esteban0477/cfn-aws'
         }
       }
 
