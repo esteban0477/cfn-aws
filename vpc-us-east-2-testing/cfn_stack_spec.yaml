@@ -56,7 +56,7 @@ Metadata:
 Parameters:
 
   SecurityGroupDescription:
-    Description: Security Group Description
+    Description: Security Group Description Modified!
     Type: String
     Default: something
 
