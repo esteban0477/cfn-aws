@@ -17,7 +17,7 @@ pipeline {
         steps {
           script {
 
-            if (env.BRANCH_NAME == 'main'){
+            if (env.BRANCH_NAME == 'master'){
               
               def MODULES_TO_BUILD = sh script:"./detect_tf_changes.sh", returnStdout: true
               MODULES_TO_BUILD.split("\n").each {
