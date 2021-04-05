@@ -6,7 +6,11 @@ if [ $EXISTS -gt 0 ]
 then
     aws cloudformation update-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
     aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
+    echo "\nGetting Events:\n"
+    aws cloudformation describe-stack-events --stack-name ${STACK_NAME} | yq eval -PM
 else
     aws cloudformation create-stack --template-body file://cfn_stack_spec.yaml --parameters file://parameters.json --stack-name ${STACK_NAME}
     aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
+    echo "\nGetting Events:\n"
+    aws cloudformation describe-stack-events --stack-name ${STACK_NAME} | yq eval -PM
 fi
