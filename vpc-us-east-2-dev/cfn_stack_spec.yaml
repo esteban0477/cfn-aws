@@ -1,0 +1,156 @@
+---
+Resources:
+
+  # VPC & IGW With the Attachment
+
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.32.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  igwmyVPC:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref igwmyVPC
+
+  # Private Subnets Definitions with its given route-tables & routes
+
+  PrivateSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "a"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.208.0/21
+      Tags:
+        - Key: Purpose
+          Value: Development
+  
+  PrivateSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "b"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.216.0/21
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  PrivateSubnet03:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "c"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.224.0/21
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  routeTableAssocPri01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet01
+      RouteTableId: !Ref PrivateRouteTable
+
+  routeTableAssocPri02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet02
+      RouteTableId: !Ref PrivateRouteTable
+
+  routeTableAssocPri03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet03
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Public Subnets Definitions with its given route-tables & routes
+  
+  PublicSubnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "a"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.232.0/21
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  PublicSubnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "b"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.240.0/21
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Purpose
+          Value: Development
+  
+  PublicSubnet03:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Join [ "", [!Ref "AWS::Region", "c"] ]
+      VpcId: !Ref myVPC
+      CidrBlock: 172.32.248.0/21
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Purpose
+          Value: Development
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Purpose
+          Value: Development
+  
+  routeTableAssocPub01:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet01
+      RouteTableId: !Ref PublicRouteTable
+
+  routeTableAssocPub02:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet02
+      RouteTableId: !Ref PublicRouteTable
+
+  routeTableAssocPub03:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet03
+      RouteTableId: !Ref PublicRouteTable
+
+  routeInternetPublicSubnets:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igwmyVPC
+
+  
+
+  
