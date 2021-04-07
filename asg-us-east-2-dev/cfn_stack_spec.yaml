@@ -1,0 +1,101 @@
+---
+Resources:
+
+  MyIamInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: SecretManagerReaderEC2
+      Path: "/"
+      Roles:
+      - !ImportValue RoleSecretManagerReader
+  
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${AWS::StackName}-LT"
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt
+            - MyIamInstanceProfile
+            - Arn
+        DisableApiTermination: true
+        ImageId: !FindInMap [ AMIUbuntu, !Ref "AWS::Region" , amd64 ]
+        InstanceType: !FindInMap [ InstanceType, !Ref Enviroment, InstanceType ]
+        KeyName: !Ref KeyName
+        SecurityGroupIds: !Ref NSGList
+
+  ASGApp:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: 
+        Fn::GetAZs:
+          Ref: "AWS::Region"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      TargetGroupARNs: 
+        - !ImportValue TGAssociationOutput
+      VPCZoneIdentifier:
+        - !ImportValue SubnetIDPublicSubnet01
+        - !ImportValue SubnetIDPublicSubnet02
+        - !ImportValue SubnetIDPublicSubnet03
+      DesiredCapacity: 3
+      MaxSize: 6
+      MinSize: 3
+      Tags:
+        - Key: keyname
+          Value: value
+          PropagateAtLaunch: False
+
+Parameters:
+
+  KeyName:
+    Description: An SSH Key to access the EC2 instances
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: bwapp
+    ConstraintDescription: must be the name of a valid ssh key
+
+  NSGList:
+    Description: Security Group List for the LT
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Default: "[]"
+
+  Enviroment:
+    Description: Environment to create resources
+    Type: String
+    Default: Prod
+    AllowedValues: 
+    - Dev
+    - Test
+    - Perf
+    - Stg
+    - Prod
+    ConstraintDescription: Must be a valid environment type
+
+Mappings:
+
+  InstanceType:
+    Dev:
+      InstanceType: t2.nano
+    Test:
+      InstanceType: t2.micro
+    Perf:
+      InstanceType: t2.micro
+    Stg:
+      InstanceType: t2.micro
+    Prod:
+      InstanceType: t2.micro
+
+  AMIUbuntu:
+    us-east-1: 
+      amd64: ami-03eaf3b9c3367e75c
+      arm64: ami-06c7b46274dd03c77
+    us-east-2: 
+      amd64: ami-09135e71dc2619458
+      arm64: ami-0c8a4fc25e0148cdd
+    us-west-1: 
+      amd64: ami-0513e8ea9024b5b92
+      arm64: ami-03659b2c5b0eb3df0
+    us-west-2: 
+      amd64: ami-007e276c37b5ff2d7
+      arm64: ami-0a9325cf973896d55

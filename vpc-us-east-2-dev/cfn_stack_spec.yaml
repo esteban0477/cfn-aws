@@ -151,6 +151,48 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref igwmyVPC
 
-  
+Outputs:
+
+  VPCID:
+    Description: VPC ID For reference
+    Value: !Ref myVPC
+    Export:
+      Name: VPCapp
+
+  SubnetIDPublicSubnet01:
+    Description: Subnets ID for public subnets
+    Value: !Ref PublicSubnet01
+    Export:
+      Name: SubnetIDPublicSubnet01
+
+  SubnetIDPublicSubnet02:
+    Description: Subnets ID for public subnets
+    Value: !Ref PublicSubnet02
+    Export:
+      Name: SubnetIDPublicSubnet02
+
+  SubnetIDPublicSubnet03:
+    Description: Subnets ID for public subnets
+    Value: !Ref PublicSubnet03
+    Export:
+      Name: SubnetIDPublicSubnet03
+
+  SubnetIDPrivateSubnet01:
+    Description: Subnets ID for public subnets
+    Value: !Ref PrivateSubnet01
+    Export:
+      Name: SubnetIDPrivateSubnet01
+
+  SubnetIDPrivateSubnet02:
+    Description: Subnets ID for public subnets
+    Value: !Ref PrivateSubnet02
+    Export:
+      Name: SubnetIDPrivateSubnet02
+
+  SubnetIDPrivateSubnet03:
+    Description: Subnets ID for public subnets
+    Value: !Ref PrivateSubnet03
+    Export:
+      Name: SubnetIDPrivateSubnet03
 
   

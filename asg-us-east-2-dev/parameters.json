@@ -1,0 +1,12 @@
+[
+    {
+        "ParameterKey": "Enviroment",
+        "ParameterValue": "Dev"
+    },{
+        "ParameterKey": "KeyName",
+        "ParameterValue": "bwapp"
+    },{
+        "ParameterKey": "NSGList",
+        "ParameterValue": "sg-055faa5dfc011fe18"
+    }
+]

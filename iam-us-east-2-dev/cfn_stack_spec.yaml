@@ -1,0 +1,30 @@
+---
+Resources:
+  SecretManagerReader:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: "SecretManagerReader"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "secretsmanager:GetSecretValue"
+                Resource: "*"
+
+Outputs:
+  RoleOutput:
+    Description: Role to be used on the instance profile
+    Value: !Ref SecretManagerReader
+    Export:
+      Name: RoleSecretManagerReader

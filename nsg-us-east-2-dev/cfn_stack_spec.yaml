@@ -1,0 +1,84 @@
+---
+# Default Security Group for my labs
+# It has basic ports: 22, 80, 443
+
+Parameters:
+  CreateBaseSecurityGroup:
+    Type: String
+    Description: Create base security group
+    AllowedValues:
+    - True
+    - False
+    Default: True
+
+Conditions: 
+  CreateBaseSecurityGroupCond: !Equals [ !Ref CreateBaseSecurityGroup, True ]
+
+Resources:
+
+  DefaultSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateBaseSecurityGroupCond
+    Properties:
+      GroupName: BaseSecurityGroup
+      GroupDescription: Base security Group with SSH, HTTP & HTTPS
+      VpcId: !ImportValue VPCapp
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Description
+          Value: Base Security Group
+
+  ALBSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateBaseSecurityGroupCond
+    Properties:
+      GroupName: ALBSecurityGroup
+      GroupDescription: ALB security Group with HTTP & HTTPS
+      VpcId: !ImportValue VPCapp
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Description
+          Value: ALB Security Group
+
+Outputs:
+  BaseSecurityGroupOutput:
+    Description: Base NSG with common ports
+    Value: !Ref DefaultSecGroup
+    Export:
+      Name: BaseSecurityGroup
+
+  ALBSecurityGroupOutput:
+    Description: ALB NSG with common ports
+    Value: !Ref ALBSecGroup
+    Export:
+      Name: ALBSecurityGroup
