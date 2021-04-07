@@ -22,7 +22,8 @@ Resources:
         ImageId: !FindInMap [ AMIUbuntu, !Ref "AWS::Region" , amd64 ]
         InstanceType: !FindInMap [ InstanceType, !Ref Enviroment, InstanceType ]
         KeyName: !Ref KeyName
-        SecurityGroupIds: !Ref NSGList
+        SecurityGroupIds: 
+          - !ImportValue BaseSecurityGroup
 
   ASGApp:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -54,11 +55,6 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
     Default: bwapp
     ConstraintDescription: must be the name of a valid ssh key
-
-  NSGList:
-    Description: Security Group List for the LT
-    Type: List<AWS::EC2::SecurityGroup::Id>
-    Default: "[]"
 
   Enviroment:
     Description: Environment to create resources
