@@ -1,0 +1,88 @@
+---
+Transform: AWS::SecretsManager-2020-07-23
+# Capabilities needed: CAPABILITY_AUTO_EXPAND CAPABILITY_IAM
+
+Resources:
+  rdsDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: false
+      DBInstanceIdentifier: movies-db
+      DBName: MyMovies
+      MasterUsername: !Sub '{{resolve:secretsmanager:${MyRDSInstanceRotationSecret}::username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${MyRDSInstanceRotationSecret}::password}}'
+      VPCSecurityGroups:
+        - !ImportValue RDSSecurityGroup
+      DBSubnetGroupName: !Ref MySQLSubnetGroup
+      Engine: mysql
+      EngineVersion: 8.0.11
+      Port: 3306
+      PubliclyAccessible: false 
+      StorageEncrypted: false
+      StorageType: standard
+
+  MySQLSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Some Description
+      DBSubnetGroupName: MySQLSubnetGroup
+      SubnetIds: 
+        - !ImportValue SubnetIDPrivateSubnet01
+        - !ImportValue SubnetIDPrivateSubnet02
+        - !ImportValue SubnetIDPrivateSubnet03
+    
+  MyRDSInstanceRotationSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: mysql-admin-rotator
+      Description: 'This is my rds instance secret'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+      Tags:
+        - Key: AppName
+          Value: MyApp
+
+  SecretRDSInstanceAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref MyRDSInstanceRotationSecret
+      TargetId: !Ref rdsDBInstance
+      TargetType: AWS::RDS::DBInstance
+     
+  MySecretRotationSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    DependsOn: SecretRDSInstanceAttachment 
+    Properties:
+      SecretId: !Ref MyRDSInstanceRotationSecret
+      HostedRotationLambda:
+        RotationType: MySQLSingleUser
+        RotationLambdaName: SecretsManagerRotationRDSMysql
+        VpcSecurityGroupIds: !ImportValue VPCIDNSGDefaultmyVPC
+        VpcSubnetIds:
+          Fn::Join:
+            - ","
+            - - !ImportValue SubnetIDPrivateSubnet01
+              - !ImportValue SubnetIDPrivateSubnet02
+              - !ImportValue SubnetIDPrivateSubnet03
+      RotationRules:
+        AutomaticallyAfterDays: 30
+
+  SecretsManagerVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      SubnetIds:
+        - !ImportValue SubnetIDPrivateSubnet01
+        - !ImportValue SubnetIDPrivateSubnet02
+        - !ImportValue SubnetIDPrivateSubnet03
+      SecurityGroupIds:
+        - !ImportValue VPCIDNSGDefaultmyVPC
+      VpcEndpointType: 'Interface'
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.secretsmanager"
+      PrivateDnsEnabled: false
+      VpcId: !ImportValue VPCapp

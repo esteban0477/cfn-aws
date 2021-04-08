@@ -8,6 +8,7 @@ Resources:
     Properties:
       CidrBlock: 172.32.0.0/16
       EnableDnsSupport: true
+      EnableDnsHostnames: true
       Tags:
         - Key: Purpose
           Value: Development
@@ -158,6 +159,12 @@ Outputs:
     Value: !Ref myVPC
     Export:
       Name: VPCapp
+  
+  VPCIDNSGDefault:
+    Description: Default NSG of the VPC
+    Value: !GetAtt myVPC.DefaultSecurityGroup
+    Export:
+      Name: VPCIDNSGDefaultmyVPC
 
   SubnetIDPublicSubnet01:
     Description: Subnets ID for public subnets
